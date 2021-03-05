@@ -1,43 +1,49 @@
 package com.example.androiddevchallenge.components
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.keyframes
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.androiddevchallenge.R
-
+import androidx.compose.ui.unit.sp
+import java.util.concurrent.TimeUnit
+import kotlin.math.roundToInt
 
 @Composable
-fun PuppyItem(modifier: Modifier) {
-    Card(modifier.shadow(8.dp)) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Image(
-                modifier = Modifier
-                    .size(56.dp)
-                    .padding(8.dp),
-                painter = painterResource(id = R.drawable.dog),
-                contentDescription = null
-            )
-            Text(
-                modifier = Modifier.padding(8.dp),
-                text = "Akita"
-            )
-        }
+fun CountDownTimer(count: Int, isPlaying: Boolean = false, onFinish: (Float) -> Unit) {
+
+    val countDown  = if (isPlaying) {
+      animateFloatAsState(
+            targetValue =  count.toFloat(),
+            animationSpec = keyframes {
+
+                durationMillis = TimeUnit.SECONDS.toMillis(count.toLong()).toInt()
+                count.toFloat() at 0
+                0f at TimeUnit.SECONDS.toMillis(count.toLong()).toInt()
+
+            },
+            finishedListener = onFinish
+        )
+    } else {
+       mutableStateOf(0f)
     }
+
+    Text(
+        modifier = Modifier.padding(16.dp),
+        text = countDown.value.roundToInt().toString(),
+        textAlign = TextAlign.Center,
+        fontSize = 56.sp
+    )
 }
 
-
-@Preview
 @Composable
-fun PuppyItemPreview() {
-    PuppyItem(modifier = Modifier)
+@Preview
+fun CountDownTimerPreview() {
+    CountDownTimer(20, false) { }
 }
