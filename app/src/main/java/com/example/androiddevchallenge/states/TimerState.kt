@@ -13,17 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.androiddevchallenge.ui.theme
+package com.example.androiddevchallenge.states
 
-import androidx.compose.ui.graphics.Color
-
-val Navy500 = Color(0xFF64869B)
-val Navy700 = Color(0xFF37596D)
-val Navy900 = Color(0xFF073042)
-val Green300 = Color(0xFF3DDC84)
-val Green900 = Color(0xFF00A956)
-
-val bgColor = "#363844"
-val progressColor = "#e66592"
-
-val pulseColor = "#ff97c2"
+enum class TimerState {
+    Initial,
+    Paused,
+    Playing
+}

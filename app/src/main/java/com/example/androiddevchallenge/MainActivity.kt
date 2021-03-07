@@ -18,31 +18,29 @@ package com.example.androiddevchallenge
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import com.example.androiddevchallenge.components.ConfigureTimer
 import com.example.androiddevchallenge.components.CountDownTimer
 import com.example.androiddevchallenge.ui.theme.MyTheme
+import com.example.androiddevchallenge.ui.theme.bgColor
 
 class MainActivity : AppCompatActivity() {
 
-
-    @ExperimentalFoundationApi
+    @ExperimentalAnimationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
 
         setContent {
             MyTheme {
@@ -53,34 +51,42 @@ class MainActivity : AppCompatActivity() {
 }
 
 // Start building your app here!
-@ExperimentalFoundationApi
+@ExperimentalAnimationApi
 @Composable
 fun MyApp() {
-    var isPlaying by remember { mutableStateOf(false) }
-    Surface(color = MaterialTheme.colors.background) {
-        Row(Modifier.fillMaxHeight(), verticalAlignment = Alignment.CenterVertically) {
 
-            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+    var isConfiguring by remember { mutableStateOf(false) }
 
-                Box(
-                    modifier = Modifier
-                        .shadow(8.dp, RoundedCornerShape(76.dp))
-                        .background(Color.fromHex("#ffeeff"), shape = RoundedCornerShape(75.dp))
-                        .clickable {
-                            isPlaying = true
-                        }
-                        .size(150.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Start timer",
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+    var timerTime by remember { mutableStateOf(0L) }
 
-                CountDownTimer(count = 5, isPlaying = isPlaying) {
-                    isPlaying = false
-                }
+    Surface(color = Color.fromHex(bgColor), modifier = Modifier.fillMaxSize()) {
+//        if (isConfiguring) {
+        AnimatedVisibility(
+            visible = isConfiguring,
+            enter = slideInVertically({
+                it - 50
+            }),
+            exit = slideOutVertically({
+                it + 50
+            })
+        ) {
+            ConfigureTimer {
+                isConfiguring = false
+                timerTime = it
+            }
+        }
+
+        AnimatedVisibility(
+            visible = !isConfiguring,
+            enter = slideInVertically({
+                it + 50
+            }),
+            exit = slideOutVertically({
+                it - 50
+            })
+        ) {
+            CountDownTimer(timerTime) {
+                isConfiguring = true
             }
         }
     }
