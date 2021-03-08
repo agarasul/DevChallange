@@ -22,15 +22,21 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
 import com.example.androiddevchallenge.components.ConfigureTimer
 import com.example.androiddevchallenge.components.CountDownTimer
 import com.example.androiddevchallenge.ui.theme.MyTheme
@@ -55,12 +61,11 @@ class MainActivity : AppCompatActivity() {
 @Composable
 fun MyApp() {
 
+
     var isConfiguring by remember { mutableStateOf(false) }
 
     var timerTime by remember { mutableStateOf(0L) }
-
-    Surface(color = Color.fromHex(bgColor), modifier = Modifier.fillMaxSize()) {
-//        if (isConfiguring) {
+    Surface(color = bgColor, modifier = Modifier.fillMaxSize()) {
         AnimatedVisibility(
             visible = isConfiguring,
             enter = slideInVertically({
@@ -70,9 +75,31 @@ fun MyApp() {
                 it + 50
             })
         ) {
-            ConfigureTimer {
-                isConfiguring = false
-                timerTime = it
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text("Configure Timer", style = TextStyle(color = Color.White)) },
+                        backgroundColor = bgColor,
+                        navigationIcon = {
+                            Image(
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .clickable {
+                                        isConfiguring = false
+                                    }
+                                    .padding(16.dp), painter = painterResource(
+                                    id =
+                                    R.drawable.ic_arrow_back
+                                ), contentDescription = null
+                            )
+                        }
+                    )
+                },
+            ) {
+                ConfigureTimer {
+                    isConfiguring = false
+                    timerTime = it
+                }
             }
         }
 
@@ -85,8 +112,17 @@ fun MyApp() {
                 it - 50
             })
         ) {
-            CountDownTimer(timerTime) {
-                isConfiguring = true
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text("CountDown Timer", style = TextStyle(color = Color.White)) },
+                        backgroundColor = bgColor,
+                    )
+                },
+            ) {
+                CountDownTimer(timerTime) {
+                    isConfiguring = true
+                }
             }
         }
     }

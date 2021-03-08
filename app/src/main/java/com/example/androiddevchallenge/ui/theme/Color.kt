@@ -16,6 +16,7 @@
 package com.example.androiddevchallenge.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import com.example.androiddevchallenge.fromHex
 
 val Navy500 = Color(0xFF64869B)
 val Navy700 = Color(0xFF37596D)
@@ -23,7 +24,9 @@ val Navy900 = Color(0xFF073042)
 val Green300 = Color(0xFF3DDC84)
 val Green900 = Color(0xFF00A956)
 
-val bgColor = "#363844"
-val progressColor = "#e66592"
+val bgColor = Color.fromHex("#363844")
+val progressColor =  Color.fromHex("#e66592")
 
-val pulseColor = "#ff97c2"
+
+
+val pulseColor =  Color.fromHex("#ff97c2")

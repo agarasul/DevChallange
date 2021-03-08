@@ -16,7 +16,6 @@
 package com.example.androiddevchallenge.components
 
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.animateColor
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
@@ -25,26 +24,19 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.Scaffold
+import androidx.compose.material.TopAppBar
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,19 +47,20 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.androiddevchallenge.fromHex
+import com.example.androiddevchallenge.R
 import com.example.androiddevchallenge.states.TimerState
 import com.example.androiddevchallenge.ui.theme.bgColor
 import com.example.androiddevchallenge.ui.theme.progressColor
-import com.example.androiddevchallenge.ui.theme.pulseColor
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
@@ -103,11 +96,11 @@ fun CountDownTimer(totalTime: Long, onClick: () -> Unit) {
                 remainedTime = initialTimerValue - playTime
 
                 offset = initialOffsetValue - (
-                    (
-                        playTime.toFloat() / totalTime
-                            .toFloat()
+                        (
+                                playTime.toFloat() / totalTime
+                                    .toFloat()
+                                )
                         )
-                    )
                 if (TimeUnit.NANOSECONDS.toMillis(remainedTime) == 0L) {
                     timerState = TimerState.Initial
                     remainedTime = totalTime
@@ -123,20 +116,20 @@ fun CountDownTimer(totalTime: Long, onClick: () -> Unit) {
     val minutes = getMinutes(remainedTime)
     val seconds = getSeconds(remainedTime)
 
+
     BoxWithConstraints(
         modifier = Modifier
+            .background(bgColor)
             .fillMaxSize(),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.TopCenter,
     ) {
-        val boxHeight = with(LocalDensity.current) { constraints.maxHeight.toDp() }
+        val boxHeight = with(LocalDensity.current) { constraints.maxHeight.toDp()}
 
         Box(
             modifier = Modifier
                 .offset(y = -(boxHeight * (1 + offset)))
                 .background(
-                    color = Color.fromHex(
-                        progressColor
-                    ),
+                    color = progressColor,
                     shape = RoundedCornerShape(cornerRadius)
                 )
                 .animateContentSize()
@@ -146,17 +139,9 @@ fun CountDownTimer(totalTime: Long, onClick: () -> Unit) {
         Column(
             Modifier
                 .fillMaxWidth()
-                .wrapContentHeight(),
+                .padding(top = 56.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
-            Text(
-                text = "Click here to set timer",
-                textAlign = TextAlign.Center,
-                fontSize = 24.sp,
-                style = TextStyle(color = Color.White),
-                modifier = Modifier.clickable(onClick = onClick)
-            )
 
             CountDownTimerText(
                 currentValue = remainedTime,
@@ -165,6 +150,7 @@ fun CountDownTimer(totalTime: Long, onClick: () -> Unit) {
 
             Spacer(modifier = Modifier.height(24.dp))
             Row(Modifier) {
+
                 Button(
                     enabled = totalTime != 0L,
                     onClick = {
@@ -203,6 +189,13 @@ fun CountDownTimer(totalTime: Long, onClick: () -> Unit) {
                 ) {
                     Text(text = "Reset")
                 }
+                Spacer(Modifier.width(16.dp))
+                Button(
+                    enabled = timerState == TimerState.Initial,
+                    onClick = onClick
+                ) {
+                    Text(text = "Configure")
+                }
             }
         }
     }
@@ -218,59 +211,78 @@ fun CountDownTimerText(currentValue: Long, shouldScale: Boolean) {
     val infiniteTransition = rememberInfiniteTransition()
     val scaleAnimation by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = if (shouldScale) 1.1f else 1f,
+        targetValue = if (shouldScale) 1.2f else 1f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 500, easing = LinearOutSlowInEasing)
 
         )
     )
 
-    val colorAnimation by infiniteTransition.animateColor(
-        initialValue = Color.White,
-        targetValue = if (shouldScale) Color.fromHex(pulseColor) else Color.White,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 500, easing = LinearOutSlowInEasing)
-        )
-    )
-
-    Row(Modifier) {
-        Text(
-            modifier = Modifier,
-            text = hours,
-            textAlign = TextAlign.Center,
-            fontSize = 56.sp,
-            style = TextStyle(color = Color.White)
-        )
-        Text(
-            modifier = Modifier,
-            text = ":",
-            textAlign = TextAlign.Center,
-            fontSize = 56.sp,
-            style = TextStyle(color = Color.White)
-        )
-        Text(
-            modifier = Modifier,
-            text = minutes,
-            textAlign = TextAlign.Center,
-            fontSize = 56.sp,
-            style = TextStyle(color = Color.White)
-        )
-        Text(
-            modifier = Modifier,
-            text = ":",
-            textAlign = TextAlign.Center,
-            fontSize = 56.sp,
-            style = TextStyle(color = Color.White)
-        )
-        Text(
-            modifier = Modifier
+    Row {
+        Box(
+            Modifier
+                .shadow(3.dp)
+                .padding(16.dp)
+        ) {
+            Text(
+                modifier = Modifier,
+                text = hours,
+                textAlign = TextAlign.Center,
+                fontSize = 56.sp,
+                style = TextStyle(color = Color.White)
+            )
+        }
+        Box(
+            Modifier
+                .padding(top = 16.dp, bottom = 16.dp, start = 4.dp, end = 4.dp)
+        ) {
+            Text(
+                modifier = Modifier,
+                text = ":",
+                textAlign = TextAlign.Center,
+                fontSize = 56.sp,
+                style = TextStyle(color = Color.White)
+            )
+        }
+        Box(
+            Modifier
+                .shadow(3.dp)
+                .padding(16.dp)
+        ) {
+            Text(
+                modifier = Modifier,
+                text = minutes,
+                textAlign = TextAlign.Center,
+                fontSize = 56.sp,
+                style = TextStyle(color = Color.White)
+            )
+        }
+        Box(
+            Modifier
+                .padding(top = 16.dp, bottom = 16.dp, start = 4.dp, end = 4.dp)
+        ) {
+            Text(
+                modifier = Modifier,
+                text = ":",
+                textAlign = TextAlign.Center,
+                fontSize = 56.sp,
+                style = TextStyle(color = Color.White)
+            )
+        }
+        Box(
+            Modifier
                 .scale(scaleAnimation)
-                .animateContentSize(),
-            text = seconds,
-            textAlign = TextAlign.Center,
-            fontSize = 56.sp,
-            style = TextStyle(color = colorAnimation)
-        )
+                .shadow(3.dp)
+                .padding(16.dp)
+        ) {
+            Text(
+                modifier = Modifier,
+                text = seconds,
+                textAlign = TextAlign.Center,
+                fontSize = 56.sp,
+                style = TextStyle(color = Color.White)
+            )
+        }
     }
 }
 
@@ -323,18 +335,11 @@ fun ConfigureTimer(onTimerSet: (Long) -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.fromHex(bgColor))
+            .background(bgColor)
             .padding()
     ) {
-        Box(Modifier.height(56.dp), contentAlignment = Alignment.Center) {
-            Text(
-                text = "Timer settings",
-                textAlign = TextAlign.Center,
-                fontSize = 20.sp,
-                style = TextStyle(color = Color.White),
-            )
-        }
-        Spacer(modifier = Modifier.width(56.dp))
+
+        Spacer(modifier = Modifier.width(36.dp))
         Row(Modifier.padding(16.dp)) {
 
             TimerTextField(
@@ -368,8 +373,8 @@ fun ConfigureTimer(onTimerSet: (Long) -> Unit) {
 
                 val totalTime =
                     TimeUnit.HOURS.toNanos(timerHours.toLongOrNull() ?: 0) +
-                        TimeUnit.MINUTES.toNanos(timerMinutes.toLongOrNull() ?: 0) +
-                        TimeUnit.SECONDS.toNanos(timerSeconds.toLongOrNull() ?: 0)
+                            TimeUnit.MINUTES.toNanos(timerMinutes.toLongOrNull() ?: 0) +
+                            TimeUnit.SECONDS.toNanos(timerSeconds.toLongOrNull() ?: 0)
                 onTimerSet.invoke(totalTime)
             }
         ) {
