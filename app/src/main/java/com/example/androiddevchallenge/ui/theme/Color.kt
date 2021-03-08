@@ -25,8 +25,6 @@ val Green300 = Color(0xFF3DDC84)
 val Green900 = Color(0xFF00A956)
 
 val bgColor = Color.fromHex("#363844")
-val progressColor =  Color.fromHex("#e66592")
+val progressColor = Color.fromHex("#e66592")
 
-
-
-val pulseColor =  Color.fromHex("#ff97c2")
+val pulseColor = Color.fromHex("#ff97c2")

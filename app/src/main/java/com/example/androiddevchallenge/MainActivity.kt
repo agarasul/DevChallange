@@ -31,7 +31,11 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -61,10 +65,9 @@ class MainActivity : AppCompatActivity() {
 @Composable
 fun MyApp() {
 
-
     var isConfiguring by remember { mutableStateOf(false) }
 
-    var timerTime by remember { mutableStateOf(0L) }
+    var timerTime by remember { mutableStateOf(70L) }
     Surface(color = bgColor, modifier = Modifier.fillMaxSize()) {
         AnimatedVisibility(
             visible = isConfiguring,
@@ -87,10 +90,12 @@ fun MyApp() {
                                     .clickable {
                                         isConfiguring = false
                                     }
-                                    .padding(16.dp), painter = painterResource(
+                                    .padding(16.dp),
+                                painter = painterResource(
                                     id =
                                     R.drawable.ic_arrow_back
-                                ), contentDescription = null
+                                ),
+                                contentDescription = null
                             )
                         }
                     )

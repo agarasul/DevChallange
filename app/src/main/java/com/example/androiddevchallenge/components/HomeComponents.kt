@@ -17,6 +17,7 @@ package com.example.androiddevchallenge.components
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
@@ -24,19 +25,24 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
-import androidx.compose.material.Scaffold
-import androidx.compose.material.TopAppBar
-
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,14 +56,12 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.androiddevchallenge.R
 import com.example.androiddevchallenge.states.TimerState
 import com.example.androiddevchallenge.ui.theme.bgColor
 import com.example.androiddevchallenge.ui.theme.progressColor
@@ -96,11 +100,11 @@ fun CountDownTimer(totalTime: Long, onClick: () -> Unit) {
                 remainedTime = initialTimerValue - playTime
 
                 offset = initialOffsetValue - (
-                        (
-                                playTime.toFloat() / totalTime
-                                    .toFloat()
-                                )
+                    (
+                        playTime.toFloat() / totalTime
+                            .toFloat()
                         )
+                    )
                 if (TimeUnit.NANOSECONDS.toMillis(remainedTime) == 0L) {
                     timerState = TimerState.Initial
                     remainedTime = totalTime
@@ -116,14 +120,13 @@ fun CountDownTimer(totalTime: Long, onClick: () -> Unit) {
     val minutes = getMinutes(remainedTime)
     val seconds = getSeconds(remainedTime)
 
-
     BoxWithConstraints(
         modifier = Modifier
             .background(bgColor)
             .fillMaxSize(),
         contentAlignment = Alignment.TopCenter,
     ) {
-        val boxHeight = with(LocalDensity.current) { constraints.maxHeight.toDp()}
+        val boxHeight = with(LocalDensity.current) { constraints.maxHeight.toDp() }
 
         Box(
             modifier = Modifier
@@ -145,7 +148,11 @@ fun CountDownTimer(totalTime: Long, onClick: () -> Unit) {
 
             CountDownTimerText(
                 currentValue = remainedTime,
-                shouldScale = minutes.toInt() <= 0 && seconds.toInt() <= 5 && timerState == TimerState.Playing
+                shouldAnimateHours = false,
+                shouldAnimateMinutes = seconds.toInt() == 0 && timerState == TimerState.Playing,
+                shouldAnimateSeconds = timerState == TimerState.Playing,
+                isLastSeconds = minutes.toInt() <= 0 && seconds.toInt() <= 5 && timerState == TimerState.Playing,
+                state = timerState
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -203,7 +210,14 @@ fun CountDownTimer(totalTime: Long, onClick: () -> Unit) {
 
 @ExperimentalAnimationApi
 @Composable
-fun CountDownTimerText(currentValue: Long, shouldScale: Boolean) {
+fun CountDownTimerText(
+    currentValue: Long,
+    shouldAnimateHours: Boolean,
+    shouldAnimateMinutes: Boolean,
+    shouldAnimateSeconds: Boolean,
+    isLastSeconds: Boolean,
+    state: TimerState
+) {
     val hours = getHours(currentValue)
     val minutes = getMinutes(currentValue)
     val seconds = getSeconds(currentValue)
@@ -211,10 +225,30 @@ fun CountDownTimerText(currentValue: Long, shouldScale: Boolean) {
     val infiniteTransition = rememberInfiniteTransition()
     val scaleAnimation by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = if (shouldScale) 1.2f else 1f,
+        targetValue = if (isLastSeconds) 1.2f else 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 500, easing = LinearOutSlowInEasing)
+            animation = tween(durationMillis = 900, easing = LinearOutSlowInEasing)
 
+        )
+    )
+
+    val secondsSlideAnimation by infiniteTransition.animateFloat(
+        initialValue = if (shouldAnimateSeconds) -1f else 0f,
+        targetValue = if (shouldAnimateSeconds) 1f else 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = LinearEasing)
+        )
+    )
+
+    val minutesInitialValue = getInitialMinitesValue(minutes.toInt(), seconds.toInt(), state)
+
+    val minutesTargetValue = getTargetMinitesValue(minutes.toInt(), seconds.toInt(), state)
+
+    val minutesSlideAnimation by infiniteTransition.animateFloat(
+        initialValue = minutesInitialValue,
+        targetValue = minutesTargetValue,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = LinearEasing)
         )
     )
 
@@ -247,10 +281,11 @@ fun CountDownTimerText(currentValue: Long, shouldScale: Boolean) {
         Box(
             Modifier
                 .shadow(3.dp)
-                .padding(16.dp)
         ) {
             Text(
-                modifier = Modifier,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .offset(y = (-72).dp * minutesSlideAnimation),
                 text = minutes,
                 textAlign = TextAlign.Center,
                 fontSize = 56.sp,
@@ -269,14 +304,18 @@ fun CountDownTimerText(currentValue: Long, shouldScale: Boolean) {
                 style = TextStyle(color = Color.White)
             )
         }
+
         Box(
             Modifier
                 .scale(scaleAnimation)
                 .shadow(3.dp)
-                .padding(16.dp)
+
         ) {
+
             Text(
-                modifier = Modifier,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .offset(y = (-80).dp * secondsSlideAnimation),
                 text = seconds,
                 textAlign = TextAlign.Center,
                 fontSize = 56.sp,
@@ -373,13 +412,49 @@ fun ConfigureTimer(onTimerSet: (Long) -> Unit) {
 
                 val totalTime =
                     TimeUnit.HOURS.toNanos(timerHours.toLongOrNull() ?: 0) +
-                            TimeUnit.MINUTES.toNanos(timerMinutes.toLongOrNull() ?: 0) +
-                            TimeUnit.SECONDS.toNanos(timerSeconds.toLongOrNull() ?: 0)
+                        TimeUnit.MINUTES.toNanos(timerMinutes.toLongOrNull() ?: 0) +
+                        TimeUnit.SECONDS.toNanos(timerSeconds.toLongOrNull() ?: 0)
                 onTimerSet.invoke(totalTime)
             }
         ) {
             Text(text = "Save")
         }
+    }
+}
+
+private fun getInitialMinitesValue(minutes: Int, seconds: Int, state: TimerState): Float {
+    return if (state == TimerState.Playing) {
+        when {
+            seconds == 0 && minutes > 0 -> {
+                0f
+            }
+            seconds == 59 -> {
+                -1f
+            }
+            else -> {
+                0f
+            }
+        }
+    } else {
+        0f
+    }
+}
+
+private fun getTargetMinitesValue(minutes: Int, seconds: Int, state: TimerState): Float {
+    return if (state == TimerState.Playing) {
+        when {
+            seconds == 0 && minutes > 0 -> {
+                1f
+            }
+            seconds == 59 -> {
+                0f
+            }
+            else -> {
+                0f
+            }
+        }
+    } else {
+        0f
     }
 }
 
